@@ -1,0 +1,205 @@
+require('mocha-as-promised')();
+var setup = require('./setup');
+var should = require('chai').should();
+var Promises = require('backbone-promises');
+
+describe('ElasticSearchDb searching tests', function() {
+  var collection;
+
+  before(function(next) {
+    var self = this;
+    setup.setupDb(function() {
+      self.Model = this.Model;
+      self.AnotherModel = this.AnotherModel;
+      self.Collection = this.Collection;
+      self.db = this.db;
+      next();
+    });
+  });
+
+  describe('Fetch parameters', function() {
+    var model;
+    var model2;
+    var model3;
+
+    before(function() {
+      model = new this.Model({
+        id: 1,
+        title: 'lorem ipsum',
+        name: 'abc',
+        meta: {
+          score: 23
+        }
+      });
+      model2 = new this.AnotherModel({
+        id: 1,
+        title: 'dolor sit amet',
+        name: 'efgabc',
+        data: 'abc',
+        meta: {
+          score: 90
+        }
+      });
+      model3 = new this.Model({
+        id: 2,
+        title: 'hop hep',
+        name: 'abc',
+        meta: {
+          score: 40
+        }
+      });
+      return Promises.when
+        .all([
+          model.save(null, {wait: true}),
+          model2.save(null, {wait: true}),
+          model3.save(null, {wait: true})
+        ]);
+    });
+
+    after(function() {
+      return Promises.when
+        .all([
+          model.destroy(),
+          model2.destroy(),
+          model3.destroy()
+        ]);
+    });
+
+    it('should multi match fields', function() {
+      var query = {
+        multi_match: {
+          query: 'ab',
+          fields: ['name^3', 'data'],
+          type: 'phrase_prefix'
+        }
+      };
+      collection = new this.Collection();
+      return collection
+        .fetch({query: query})
+        .then(function() {
+          collection.length.should.equal(3);
+        });
+    });
+
+    it('should search using wildcard query across all indices', function() {
+      var query = {
+        wildcard: {
+          name: '*abc*'
+        }
+      };
+      collection = new this.Collection();
+      return collection
+        .fetch({query: query})
+        .then(function() {
+          collection.length.should.equal(3);
+        });
+    });
+
+    it('should apply offset & limit (from & size)', function() {
+      var query = {
+        wildcard: {
+          name: '*abc*'
+        }
+      };
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          query: query,
+          limit: 2,
+          offset: 2
+        })
+        .then(function() {
+          collection.length.should.equal(1);
+        });
+
+    });
+
+    it('should search from specified indices & types', function() {
+      var query = {
+        wildcard: {
+          name: '*abc*'
+        }
+      };
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          query: query,
+          index: 'testidx,anotheridx',
+          type: 'another'
+        })
+        .then(function() {
+          collection.length.should.equal(1);
+        });
+    });
+
+    it('should search by meta score & name', function() {
+      var query = {
+        match: {
+          name: 'abc'
+        }
+      };
+      var filter = {
+        range: {
+          'meta.score': {
+            gte: 30
+          }
+        }
+      };
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          query: query,
+          filter: filter
+        })
+        .then(function() {
+          collection.length.should.equal(1);
+          collection.at(0).get('content').title.should.equal('hop hep');
+        });
+    });
+
+    it('should boost index', function() {
+      var query = {
+        wildcard: {
+          name: '*abc*',
+        }
+      };
+      var boost = {
+        anotheridx: 10
+      };
+
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          query: query,
+          index: 'testidx,anotheridx',
+          indicesBoost: boost
+        })
+        .then(function() {
+          //console.log(collection.toJSON());
+          collection.at(0).get('content').name.should.equal('efgabc');
+        });
+    });
+
+    it('should sort', function() {
+      var query = {
+        wildcard: {
+          name: '*abc*',
+        }
+      };
+      var sort = [
+        {name : 'asc'},
+        '_score'
+      ];
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          query: query,
+          index: 'testidx,anotheridx',
+          sort: sort
+        })
+        .then(function() {
+          collection.at(0).get('content').name.should.equal('abc');
+        });
+    });
+  });
+});

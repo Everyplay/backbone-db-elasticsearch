@@ -1,0 +1,6 @@
+.idea/
+.temp/
+node_modules
+.DS_Store
+coverage
+temp

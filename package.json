@@ -1,0 +1,39 @@
+{
+  "name": "backbone-db-elasticsearch",
+  "version": "0.0.1",
+  "description": "Elasticsearch driver for backbone-db",
+  "main": "index.js",
+  "keywords": [
+    "backbone",
+    "backbone-db",
+    "elasticsearch",
+    "search"
+  ],
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Applifier/backbone-db-elasticsearch.git"
+  },
+  "author": {
+    "name": "mikkolehtinen",
+    "email": "mikko@applifier.com"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "~2.4.1",
+    "backbone-db": "~0.4.4",
+    "backbone": "~1.1.0",
+    "debug": "~0.7.4",
+    "elasticsearch": "~1.5.8"
+  },
+  "devDependencies": {
+    "mocha": "~1.17.1",
+    "jshint": "~2.4.3",
+    "istanbul": "~0.2.4",
+    "chai": "~1.9.0",
+    "backbone-promises": "~0.2.5",
+    "mocha-as-promised": "~2.0.0"
+  }
+}

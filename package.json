@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/Applifier/backbone-db-elasticsearch.git"
+    "url": "git://github.com/Everyplay/backbone-db-elasticsearch.git"
   },
   "author": {
     "name": "mikkolehtinen",

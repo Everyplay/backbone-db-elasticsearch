@@ -10,7 +10,7 @@ var TestModel = Model.extend({
   searchOptions: {
     index: 'testidx',
   },
-  indexedValues: function() {
+  searchValues: function() {
     return this.toJSON();
   }
 });
@@ -24,8 +24,8 @@ _seachOptions_ object must define:
 
 -	index: index where document is stored
 
-### indexedValues
-indexedValues function should return Object containing keys & values to be indexed.
+### searchValues
+searchValues function should return Object containing keys & values to be indexed.
 
 
 ## Adding data to index

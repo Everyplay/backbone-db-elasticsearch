@@ -24,15 +24,15 @@ var getESOptions = function(model, options) {
   };
   esData.id = model.id.toString();
   if (options.includeBody) {
-    if (!_.isFunction(model.indexedValues)) {
-      throw new Error('indexedValues function must be defined');
+    if (!_.isFunction(model.searchValues)) {
+      throw new Error('searchValues function must be defined');
     }
     if (options.update) {
       esData.body = {
-        doc: model.indexedValues()
+        doc: model.searchValues()
       };
     } else {
-      esData.body = model.indexedValues();
+      esData.body = model.searchValues();
     }
   }
   return esData;

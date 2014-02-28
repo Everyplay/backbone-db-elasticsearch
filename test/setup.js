@@ -21,7 +21,7 @@ var TestModel = Model.extend({
   searchOptions: {
     index: 'testidx',
   },
-  indexedValues: function() {
+  searchValues: function() {
     var json = this.toJSON();
     return json;
   }

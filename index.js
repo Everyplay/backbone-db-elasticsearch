@@ -41,12 +41,14 @@ var getESOptions = function(model, options) {
 var convertResults = function(hits) {
   if (!hits || !hits.length) return [];
   return _.map(hits, function(hit) {
+    debug('convert', hit);
     var doc = {};
     // prefix ids with type because otherwise collection may have colliding ids
     doc.id = hit._type + '::' + hit._id;
     doc.content = hit._source || {};
     // add information on content type
     doc.content_type = hit._type;
+    doc.score = hit._score;
     return doc;
   });
 };
@@ -54,10 +56,13 @@ var convertResults = function(hits) {
 _.extend(ElasticSearchDb.prototype, Db.prototype, {
   create: function(model, options, callback) {
     var self = this;
-    this.client.create(getESOptions(model, {
+    var searchObject = getESOptions(model, {
       includeBody: true
-    }), function(error, resp) {
+    });
+    debug('create', searchObject);
+    this.client.create(searchObject, function(error, resp) {
       if (options.wait === true) {
+        debug('refresh indices');
         self._refreshIndices(null, function(err, res) {
           callback(error, model.toJSON());
         });
@@ -94,7 +99,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
     if (options.indicesBoost) query.body.indicesBoost = options.indicesBoost;
     if (options.sort) query.body.sort = options.sort;
 
-    debug('findAll query', query);
+    debug('findAll query', JSON.stringify(query));
     this.client.search(query, function(error, resp) {
       if (error) return callback(error);
       debug('findAll results', JSON.stringify(resp));
@@ -114,7 +119,9 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   },
 
   destroy: function(model, options, callback) {
-    this.client.delete(getESOptions(model), function(error, resp) {
+    var searchObject = getESOptions(model);
+    debug('destroy', searchObject);
+    this.client.delete(searchObject, function(error, resp) {
       callback(error, model.toJSON());
     });
   },

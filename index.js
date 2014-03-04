@@ -53,6 +53,16 @@ var convertResults = function(hits) {
   });
 };
 
+var convertMsearchResults = function(responses) {
+  if (!responses || !responses.length) return [];
+  var results = [];
+  _.each(responses, function(resp) {
+    var hits = convertResults(resp.hits.hits);
+    results = results.concat(hits);
+  });
+  return results;
+};
+
 _.extend(ElasticSearchDb.prototype, Db.prototype, {
   create: function(model, options, callback) {
     var self = this;
@@ -81,30 +91,11 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   },
 
   findAll: function(collection, options, callback) {
-    var query = {
-      body: {
-        query: options.query
-      }
-    };
-    if (options.index) query.index = options.index;
-    if (options.type) query.type = options.type;
-
-    if (options.offset || options.from) {
-      query.body.from = options.offset || options.from || 0;
+    if (options.msearch) {
+      return this.msearch(collection, options, callback);
+    } else {
+      return this.search(collection, options, callback);
     }
-    if (options.limit || options.size) {
-      query.body.size = options.limit || options.size || 0;
-    }
-    if (options.filter) query.body.filter = options.filter;
-    if (options.indicesBoost) query.body.indicesBoost = options.indicesBoost;
-    if (options.sort) query.body.sort = options.sort;
-
-    debug('findAll query', JSON.stringify(query));
-    this.client.search(query, function(error, resp) {
-      if (error) return callback(error);
-      debug('findAll results', JSON.stringify(resp));
-      callback(null, convertResults(resp.hits.hits));
-    });
   },
 
   update: function(model, options, callback) {
@@ -133,6 +124,43 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
       index: indexes
     }, function(err, response) {
       callback(err);
+    });
+  },
+
+  search: function(collection, options, callback) {
+    var query = {
+      body: {
+        query: options.query
+      }
+    };
+    if (options.index) query.index = options.index;
+    if (options.type) query.type = options.type;
+
+    if (options.offset || options.from) {
+      query.body.from = options.offset || options.from || 0;
+    }
+    if (options.limit || options.size) {
+      query.body.size = options.limit || options.size || 0;
+    }
+    if (options.filter) query.body.filter = options.filter;
+    if (options.indicesBoost) query.body.indicesBoost = options.indicesBoost;
+    if (options.sort) query.body.sort = options.sort;
+
+    debug('findAll query', JSON.stringify(query));
+    this.client.search(query, function(error, resp) {
+      if (error) return callback(error);
+      debug('findAll results', JSON.stringify(resp));
+      callback(null, convertResults(resp.hits.hits));
+    });
+  },
+
+  msearch: function(collection, options, callback) {
+    var query = {
+      body: options.body
+    };
+    this.client.msearch(query, function(error, resp) {
+      if (error) return callback(error);
+      callback(null, convertMsearchResults(resp.responses));
     });
   }
 });

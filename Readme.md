@@ -104,6 +104,10 @@ Apply [sort](http://www.elasticsearch.org/guide/en/elasticsearch/reference/curre
 
 [Boost](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-request-index-boost.html) defined indices.
 
+#### msearch
+
+If set to true, do a [multi search](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-multi-search.html)
+
 ## Notes
 
 This adapter is not fully backbone-db compliant, since query DSL is using Elasticsearch syntax, instead of MongoDB syntax.

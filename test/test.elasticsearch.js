@@ -202,4 +202,31 @@ describe('ElasticSearchDb searching tests', function() {
         });
     });
   });
+
+  describe('Multi search', function() {
+    it('should do a msearch', function() {
+      var queriesBody = [
+        // match all query
+        { index: 'anotheridx'},
+        { query: { match_all: {} } },
+        // query_string query, on index/type
+        { index: 'testidx', type: 'test' },
+        {
+          query: {
+            query_string: { query: '"abc"' }
+          },
+          size: 1
+        }
+      ];
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          msearch: true,
+          body: queriesBody
+        })
+        .then(function() {
+          collection.length.should.equal(2);
+        });
+    });
+  });
 });

@@ -8,35 +8,10 @@ function ElasticSearchDb(name, client) {
   }
   this.name = name || '';
   this.client = client;
+  this.prefixSeparator = '::';
 }
 
 ElasticSearchDb.sync = Db.sync;
-
-var getESOptions = function(model, options) {
-  if (!_.isObject(model.searchOptions)) throw new Error('searchOptions must be defined');
-  if (!model.id) throw new Error('Model.id must be defined');
-  if (!model.type) throw new Error('Model.type must be defined');
-
-  options = options || {};
-  var esData = {
-    index: model.searchOptions.index,
-    type: model.type,
-  };
-  esData.id = model.id.toString();
-  if (options.includeBody) {
-    if (!_.isFunction(model.searchValues)) {
-      throw new Error('searchValues function must be defined');
-    }
-    if (options.update) {
-      esData.body = {
-        doc: model.searchValues()
-      };
-    } else {
-      esData.body = model.searchValues();
-    }
-  }
-  return esData;
-};
 
 var convertResults = function(hits) {
   if (!hits || !hits.length) return [];
@@ -66,7 +41,7 @@ var convertMsearchResults = function(responses) {
 _.extend(ElasticSearchDb.prototype, Db.prototype, {
   create: function(model, options, callback) {
     var self = this;
-    var searchObject = getESOptions(model, {
+    var searchObject = this.getESOptions(model, {
       includeBody: true
     });
     debug('create', searchObject);
@@ -83,7 +58,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   },
 
   find: function(model, options, callback) {
-    this.client.get(getESOptions(model), function(error, resp) {
+    this.client.get(this.getESOptions(model), function(error, resp) {
       if (error) return callback(error);
       model.set(resp._source);
       callback(error, model.toJSON());
@@ -101,7 +76,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   update: function(model, options, callback) {
     options = options || {};
     if (!options.update) return this.create.apply(this, arguments);
-    this.client.update(getESOptions(model, {
+    this.client.update(this.getESOptions(model, {
       includeBody: true,
       update: true
     }), function(error, resp) {
@@ -110,7 +85,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   },
 
   destroy: function(model, options, callback) {
-    var searchObject = getESOptions(model);
+    var searchObject = this.getESOptions(model);
     debug('destroy', searchObject);
     this.client.delete(searchObject, function(error, resp) {
       callback(error, model.toJSON());
@@ -133,7 +108,9 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
         query: options.query
       }
     };
-    if (options.index) query.index = options.index;
+    if (options.index) {
+      query.indexes = this.prefixIndexKeys(options.index);
+    }
     if (options.type) query.type = options.type;
 
     if (options.offset || options.from) {
@@ -143,7 +120,9 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
       query.body.size = options.limit || options.size || 0;
     }
     if (options.filter) query.body.filter = options.filter;
-    if (options.indicesBoost) query.body.indicesBoost = options.indicesBoost;
+    if (options.indicesBoost) {
+      query.body.indicesBoost = this.prefixObjectIndexKeys(options.indicesBoost);
+    }
     if (options.sort) query.body.sort = options.sort;
 
     debug('findAll query', JSON.stringify(query));
@@ -156,13 +135,76 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
 
   msearch: function(collection, options, callback) {
     var query = {
-      body: options.body
+      body: this.prefixMqueryOptions(options.body)
     };
+    debug('mquery:', query);
     this.client.msearch(query, function(error, resp) {
       if (error) return callback(error);
+      var responseErrors = _.filter(resp.responses, function(response) {
+        return response.error;
+      });
+      if (responseErrors.length) {
+        var msg = _.pluck(responseErrors, 'error').join(' & ');
+        return callback(new Error(msg));
+      }
       callback(null, convertMsearchResults(resp.responses));
     });
+  },
+
+  getESOptions: function(model, options) {
+    if (!_.isObject(model.searchOptions)) throw new Error('searchOptions must be defined');
+    if (!model.id) throw new Error('Model.id must be defined');
+    if (!model.type) throw new Error('Model.type must be defined');
+
+    options = options || {};
+    var esData = {
+      index: this.name + this.prefixSeparator + model.searchOptions.index,
+      type: model.type,
+    };
+    esData.id = model.id.toString();
+    if (options.includeBody) {
+      if (!_.isFunction(model.searchValues)) {
+        throw new Error('searchValues function must be defined');
+      }
+      if (options.update) {
+        esData.body = {
+          doc: model.searchValues()
+        };
+      } else {
+        esData.body = model.searchValues();
+      }
+    }
+    return esData;
+  },
+
+  // prefix keys when index is a comma separated list
+  prefixIndexKeys: function(index) {
+    var indexes = index.split(',');
+    return _.map(indexes, function(index) {
+      return this.name + this.prefixSeparator + index;
+    }, this).join(',');
+  },
+
+  // prefix keys when a Object type option is given
+  // e.g. {indexa: 123, indexb: 455}
+  prefixObjectIndexKeys: function(indexObject) {
+    var prefixed = {};
+    for (var key in indexObject) {
+      prefixed[this.name + this.prefixSeparator + indexObject[key]];
+    }
+    return prefixed;
+  },
+
+  prefixMqueryOptions: function(mqueryBody) {
+    var result = [];
+    _.each(mqueryBody, function(opts) {
+      var options = _.clone(opts);
+      if (options.index) options.index = this.prefixIndexKeys(options.index);
+      result.push(options);
+    }, this);
+    return result;
   }
+
 });
 
 module.exports = ElasticSearchDb;

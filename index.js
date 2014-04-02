@@ -159,7 +159,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
     options = options || {};
     var esData = {
       index: this.name + this.prefixSeparator + model.searchOptions.index,
-      type: model.type,
+      type: model.type.toLowerCase(),
     };
     esData.id = model.id.toString();
     if (options.includeBody) {

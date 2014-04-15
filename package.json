@@ -1,6 +1,6 @@
 {
   "name": "backbone-db-elasticsearch",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Elasticsearch driver for backbone-db",
   "main": "index.js",
   "keywords": [

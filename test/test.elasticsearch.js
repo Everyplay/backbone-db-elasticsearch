@@ -1,4 +1,3 @@
-require('mocha-as-promised')();
 var setup = require('./setup');
 var should = require('chai').should();
 var Promises = require('backbone-promises');

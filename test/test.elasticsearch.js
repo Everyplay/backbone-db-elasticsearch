@@ -252,5 +252,39 @@ describe('ElasticSearchDb searching tests', function() {
           collection.length.should.equal(2);
         });
     });
+
+    it('should do msearch /w function_score', function() {
+      var queriesBody = [
+        // match all query
+        { index: 'anotheridx'},
+        { query: { match_all: {} } },
+        // query_string query, on index/type
+        { index: 'testidx', type: 'test' },
+        {
+          query: {
+            function_score: {
+              query: {
+                matchAll: {
+                }
+              },
+              script_score: {
+                script: "_source.tags.contains(\"c\") ? 100 : 5",
+              },
+              boost_mode: 'replace'
+            }
+          }
+        }
+      ];
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          msearch: true,
+          body: queriesBody
+        })
+        .then(function() {
+          collection.length.should.equal(3);
+          collection.at(0).get('content').title.should.equal('hop hep');
+        });
+    });
   });
 });

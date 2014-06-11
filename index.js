@@ -35,7 +35,10 @@ var convertMsearchResults = function(responses) {
     var hits = convertResults(resp.hits.hits);
     results = results.concat(hits);
   });
-  return results;
+  // sort by score
+  return _.sortBy(results, function(r) {
+    return -1 * r.score;
+  });
 };
 
 _.extend(ElasticSearchDb.prototype, Db.prototype, {

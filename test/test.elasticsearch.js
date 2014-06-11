@@ -26,6 +26,7 @@ describe('ElasticSearchDb searching tests', function() {
         id: 1,
         title: 'lorem ipsum',
         name: 'abc',
+        tags: ['a', 'b'],
         meta: {
           score: 23
         }
@@ -43,6 +44,7 @@ describe('ElasticSearchDb searching tests', function() {
         id: 2,
         title: 'hop hep',
         name: 'abc',
+        tags: ['c', 'b'],
         meta: {
           score: 40
         }
@@ -176,6 +178,29 @@ describe('ElasticSearchDb searching tests', function() {
         .then(function() {
           //console.log(collection.toJSON());
           collection.at(0).get('content').name.should.equal('efgabc');
+        });
+    });
+
+    it('should apply script score', function() {
+      var query = {
+        function_score: {
+          query: {
+            matchAll: {
+            }
+          },
+          script_score: {
+            script: "_source.tags.contains(\"c\") ? 100 : 0",
+          },
+          boost_mode: 'replace'
+        }
+      };
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          query: query
+        })
+        .then(function() {
+          collection.at(0).get('content').title.should.equal('hop hep');
         });
     });
 

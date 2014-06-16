@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var debug = require('debug')('backbone-db-elasticsearch');
 var Db = require('backbone-db');
+var async = require('async');
 
 function ElasticSearchDb(name, client) {
   if (!client) {
@@ -206,6 +207,63 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
       result.push(options);
     }, this);
     return result;
+  },
+
+  // creates a new index (http://www.elasticsearch.org/guide/en/elasticsearch/reference/1.x/indices-create-index.html)
+  createIndex: function(options, callback) {
+    var indexName = this.prefixIndexKeys(options.index);
+    var opts = {
+      index: indexName,
+      body: {
+        settings: options.settings
+      }
+    };
+    this.client.indices.create(opts, function(error, resp) {
+      callback(error, resp);
+    });
+  },
+
+  deleteIndex: function(options, callback) {
+    var indexName = this.prefixIndexKeys(options.index);
+    this.client.indices.delete({
+      index: indexName
+    }, function(error, resp) {
+      callback(error, resp);
+    });
+  },
+
+  closeIndex: function(options, callback) {
+    var indexName = this.prefixIndexKeys(options.index);
+    this.client.indices.close({
+      index: indexName
+    }, callback);
+  },
+
+  openIndex: function(options, callback) {
+    var indexName = this.prefixIndexKeys(options.index);
+    this.client.indices.open({
+      index: indexName
+    }, callback);
+  },
+
+  // updating index requires closing it first
+  updateIndex: function(options, callback) {
+    async.series([
+      this.closeIndex.bind(this, options),
+      this._updateIndex.bind(this, options),
+      this.openIndex.bind(this, options)
+    ], callback);
+  },
+
+  _updateIndex: function(options, callback) {
+    var indexName = this.prefixIndexKeys(options.index);
+    var opts = {
+      index: indexName,
+      body: {
+        settings: options.settings
+      }
+    };
+    this.client.indices.putSettings(opts, callback);
   }
 
 });

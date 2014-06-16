@@ -66,4 +66,57 @@ describe('ElasticSearchDb CRUD', function() {
   it('should delete document from search index when destroying the Model', function() {
     return model.destroy();
   });
+
+  describe('Index CRUD', function() {
+    it('should create index', function(next) {
+      var indexSettings = {
+        analysis: {
+          analyzer: {
+            uax_url_email : {
+              filter : [
+                "standard",
+                "lowercase",
+                "stop"
+             ],
+             tokenizer : "uax_url_email"
+            }
+          }
+        }
+      };
+      this.db.createIndex({
+        index: 'foobar',
+        settings: indexSettings
+      }, function(err) {
+        next(err);
+      });
+    });
+
+    it('should update index settings', function(next) {
+      var indexSettings = {
+        mappings: {
+          info: {
+            _all : {
+              type: 'string',
+              analyzer: 'uax_url_email'
+            }
+          }
+        }
+      };
+      this.db.updateIndex({
+        index: 'foobar',
+        settings: indexSettings
+      }, function(err) {
+        next(err);
+      });
+    });
+
+    it('should delete index', function(next) {
+      this.db.deleteIndex({
+        index: 'foobar'
+      }, function(err) {
+        next(err);
+      });
+    });
+  });
+
 });

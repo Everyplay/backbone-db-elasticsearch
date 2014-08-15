@@ -64,7 +64,7 @@ var model = new TestModel({
   title: 'newtitle',
   id: 1
 });
-model.save(null, {update: true);
+model.save(null, {update: true});
 ```
 
 ## Querying documents

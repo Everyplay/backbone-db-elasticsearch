@@ -225,6 +225,72 @@ describe('ElasticSearchDb searching tests', function() {
           collection.at(0).get('content').name.should.equal('abc');
         });
     });
+
+    it('should sort ascending by metadata', function() {
+      var query = {
+        wildcard: {
+          name: '*abc*',
+        }
+      };
+      var sort = [
+        {
+          'meta.score': {
+            order: 'asc'
+          }
+        }
+      ];
+      var filter = {
+        range: {
+          'meta.score': {
+            gte: 30
+          }
+        }
+      };
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          query: query,
+          sort: sort,
+          filter: filter
+        })
+        .then(function() {
+          collection.length.should.equal(2);
+          collection.at(1).get('content').meta.score.should.equal(90);
+        });
+    });
+
+    it('should sort descending by metadata', function() {
+      var query = {
+        wildcard: {
+          name: '*abc*',
+        }
+      };
+      var sort = [
+        {
+          'meta.score': {
+            order: 'desc'
+          }
+        }
+      ];
+      var filter = {
+        range: {
+          'meta.score': {
+            gte: 30
+          }
+        }
+      };
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          query: query,
+          sort: sort,
+          filter: filter
+        })
+        .then(function() {
+          collection.length.should.equal(2);
+          collection.at(1).get('content').meta.score.should.equal(40);
+        });
+    });
   });
 
   describe('Multi search', function() {

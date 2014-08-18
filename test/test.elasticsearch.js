@@ -212,7 +212,12 @@ describe('ElasticSearchDb searching tests', function() {
         }
       };
       var sort = [
-        {name : 'asc'},
+        {
+          name : {
+            order: 'asc',
+            ignoreUnmapped: true
+          }
+        },
         '_score'
       ];
       collection = new this.Collection();
@@ -236,7 +241,8 @@ describe('ElasticSearchDb searching tests', function() {
       var sort = [
         {
           'meta.score': {
-            order: 'asc'
+            order: 'asc',
+            ignoreUnmapped: true
           }
         }
       ];
@@ -269,7 +275,8 @@ describe('ElasticSearchDb searching tests', function() {
       var sort = [
         {
           'meta.score': {
-            order: 'desc'
+            order: 'desc',
+            ignoreUnmapped: true
           }
         }
       ];

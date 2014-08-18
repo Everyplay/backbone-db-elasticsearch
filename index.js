@@ -113,7 +113,12 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
       }
     };
     if (options.index) {
-      query.indexes = this.prefixIndexKeys(options.index);
+      if (options.index.indexOf(',') > -1) {
+        query.indexes = this.prefixIndexKeys(options.index);
+      } else {
+        query.index = this.prefixIndexKeys(options.index);
+      }
+
     }
     if (options.type) query.type = options.type;
 

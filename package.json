@@ -23,16 +23,16 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "~2.4.1",
-    "backbone-db": "~0.4",
+    "backbone-db": "~0.5",
     "backbone": "~1.1.0",
-    "debug": "~0.8",
-    "elasticsearch": "~2.2",
+    "debug": "~1.0",
+    "elasticsearch": "~2.4",
     "async": "~0.9.0"
   },
   "devDependencies": {
-    "mocha": "~1.18",
-    "jshint": "~2.4",
-    "istanbul": "~0.2",
+    "mocha": "~1.21",
+    "jshint": "~2.5",
+    "istanbul": "~0.3",
     "chai": "~1.9",
     "backbone-promises": "~0.2"
   }

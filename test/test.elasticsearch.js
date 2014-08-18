@@ -182,6 +182,7 @@ describe('ElasticSearchDb searching tests', function() {
     });
 
     it('should apply script score', function() {
+      var hasC = '(doc.containsKey("tags") && doc["tags"].values.length > 0 && doc["tags"].values.contains("c"))';
       var query = {
         function_score: {
           query: {
@@ -189,7 +190,7 @@ describe('ElasticSearchDb searching tests', function() {
             }
           },
           script_score: {
-            script: "_source.tags.contains(\"c\") ? 100 : 0",
+            script: hasC + ' ? 100 : 0',
           },
           boost_mode: 'replace'
         }

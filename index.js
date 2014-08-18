@@ -16,7 +16,8 @@ ElasticSearchDb.sync = Db.sync;
 
 var convertResults = function(hits) {
   if (!hits || !hits.length) return [];
-  return _.map(hits, function(hit) {
+  var res = [];
+  _.each(hits, function(hit, idx) {
     debug('convert', hit);
     var doc = {};
     // prefix ids with type because otherwise collection may have colliding ids
@@ -24,9 +25,12 @@ var convertResults = function(hits) {
     doc.content = hit._source || {};
     // add information on content type
     doc.content_type = hit._type;
-    doc.score = hit._score;
-    return doc;
+    // default score is the order results are returned
+    // (score is missing e.g. when sorting)
+    doc.score = hit._score || hits.length - idx;
+    res.push(doc);
   });
+  return res;
 };
 
 var convertMsearchResults = function(responses) {

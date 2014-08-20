@@ -273,8 +273,25 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
       }
     };
     this.client.indices.putSettings(opts, callback);
-  }
+  },
 
+  updateMapping: function(options, callback) {
+    var indexName = this.prefixIndexKeys(options.index);
+    var opts = {
+      index: indexName,
+      type: options.type,
+      body: options.mapping
+    };
+    this.client.indices.putMapping(opts, callback);
+  },
+
+  getMapping: function(options, callback) {
+    var indexName = this.prefixIndexKeys(options.index);
+    var opts = {
+      index: indexName
+    };
+    this.client.indices.getMapping(opts, callback);
+  }
 });
 
 module.exports = ElasticSearchDb;

@@ -176,7 +176,6 @@ describe('ElasticSearchDb searching tests', function() {
           indicesBoost: boost
         })
         .then(function() {
-          //console.log(collection.toJSON());
           collection.at(0).get('content').name.should.equal('efgabc');
         });
     });

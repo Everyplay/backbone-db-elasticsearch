@@ -110,4 +110,10 @@ If set to true, do a [multi search](http://www.elasticsearch.org/guide/en/elasti
 
 ## Notes
 
-This adapter is not fully backbone-db compliant, since query DSL is using Elasticsearch syntax, instead of MongoDB syntax.
+This adapter is not fully backbone-db compliant, since query DSL is using Elasticsearch syntax, instead of MongoDB syntax. Currently supported version of ES is 1.3.2.
+
+### Configuration
+
+Dynamic scripting should be enabled in `/usr/local/opt/elasticsearch/config/elasticsearch.yml`:
+
+    script.disable_dynamic: false

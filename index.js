@@ -223,10 +223,11 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
     var indexName = this.prefixIndexKeys(options.index);
     var opts = {
       index: indexName,
-      body: {
-        settings: options.settings
-      }
+      body: {}
     };
+    if (options.settings) opts.body.settings = options.settings;
+    if (options.mappings) opts.body.mappings = options.mappings;
+    if (options.warmers) opts.body.warmers = options.warmers;
     this.client.indices.create(opts, function(error, resp) {
       callback(error, resp);
     });

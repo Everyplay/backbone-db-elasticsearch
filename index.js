@@ -203,7 +203,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   prefixObjectIndexKeys: function(indexObject) {
     var prefixed = {};
     for (var key in indexObject) {
-      prefixed[this.name + this.prefixSeparator + indexObject[key]];
+      prefixed[this.name + this.prefixSeparator + key] = indexObject[key];
     }
     return prefixed;
   },

@@ -133,7 +133,29 @@ describe('ElasticSearchDb searching tests', function() {
         });
     });
 
-    it('should search by meta score & name', function() {
+    it('should search by meta score', function() {
+      var query = {
+        match_all: {
+        }
+      };
+      var filter = {
+        term: {
+          'meta.score': 23
+        }
+      };
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          query: query,
+          filter: filter
+        })
+        .then(function() {
+          collection.length.should.equal(1);
+          collection.at(0).get('content').meta.score.should.equal(23);
+        });
+    });
+
+    it('should search by meta score range & name', function() {
       var query = {
         match: {
           name: 'abc'

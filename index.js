@@ -228,6 +228,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
     if (options.settings) opts.body.settings = options.settings;
     if (options.mappings) opts.body.mappings = options.mappings;
     if (options.warmers) opts.body.warmers = options.warmers;
+    debug('createIndex', opts);
     this.client.indices.create(opts, function(error, resp) {
       callback(error, resp);
     });
@@ -235,9 +236,11 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
 
   deleteIndex: function(options, callback) {
     var indexName = this.prefixIndexKeys(options.index);
-    this.client.indices.delete({
+    var opts = {
       index: indexName
-    }, function(error, resp) {
+    };
+    debug('deleteIndex', opts);
+    this.client.indices.delete(opts, function(error, resp) {
       callback(error, resp);
     });
   },
@@ -292,6 +295,14 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
       index: indexName
     };
     this.client.indices.getMapping(opts, callback);
+  },
+
+  deleteMapping: function(options, callback) {
+    var indexName = this.prefixIndexKeys(options.index);
+    var opts = {
+      index: indexName
+    };
+    this.client.indices.deleteMapping(opts, callback);
   }
 });
 

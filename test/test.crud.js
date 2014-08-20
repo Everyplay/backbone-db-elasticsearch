@@ -91,7 +91,7 @@ describe('ElasticSearchDb CRUD', function() {
       });
     });
 
-    it('should update index settings', function(next) {
+    it.skip('should update index settings', function(next) {
       var indexSettings = {
         mappings: {
           info: {
@@ -106,6 +106,36 @@ describe('ElasticSearchDb CRUD', function() {
         index: 'foobar',
         settings: indexSettings
       }, function(err) {
+        next(err);
+      });
+    });
+
+    it('should update index mappings', function(next) {
+      var mapping = {
+        'mytype': {
+          properties: {
+            message: {
+              type: 'string',
+              store: true,
+              analyzer: 'uax_url_email'
+            }
+          }
+        }
+      };
+      this.db.updateMapping({
+        index: 'foobar',
+        type: 'mytype',
+        mapping: mapping
+      }, function(err) {
+        next(err);
+      });
+    });
+
+    it('should get mapping', function(next) {
+      this.db.getMapping({
+        index: 'foobar'
+      }, function(err, resp) {
+        should.exist(resp);
         next(err);
       });
     });

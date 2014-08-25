@@ -49,6 +49,26 @@ describe('ElasticSearchDb CRUD', function() {
       });
   });
 
+  it('should inc a field', function() {
+    return model.save(null, {
+      update: true,
+      inc: {
+        amount: 1,
+        attribute: 'value'
+      }
+    });
+  });
+
+  it('should check that document was updated', function() {
+    model = new this.Model({id: model.id});
+    return model
+      .fetch()
+      .then(function() {
+        model.get('value').should.equal(46);
+      });
+  });
+
+
   it('should find matching Models', function() {
     var searchOptions = {
       match: {

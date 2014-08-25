@@ -2,6 +2,7 @@ var _ = require('lodash');
 var debug = require('debug')('backbone-db-elasticsearch');
 var Db = require('backbone-db');
 var async = require('async');
+var util = require('util');
 
 function ElasticSearchDb(name, client) {
   if (!client) {
@@ -84,6 +85,9 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   update: function(model, options, callback) {
     options = options || {};
     if (!options.update) return this.create.apply(this, arguments);
+    if (options.inc) {
+      return this.inc(model, options, callback);
+    }
     this.client.update(this.getESOptions(model, {
       includeBody: true,
       update: true
@@ -97,6 +101,18 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
     debug('destroy', searchObject);
     this.client.delete(searchObject, function(error, resp) {
       callback(error, model.toJSON());
+    });
+  },
+
+  inc: function(model, options, callback) {
+    var self = this;
+    var attribute = options.inc.attribute;
+    var amount = options.inc.amount;
+    var esOpts = this.getESOptions(model, {update: true});
+    esOpts.script = util.format('ctx._source.%s+=%d', attribute, amount);
+    debug('inc', esOpts);
+    this.client.update(esOpts, function(error, resp) {
+      callback(null, model.toJSON());
     });
   },
 

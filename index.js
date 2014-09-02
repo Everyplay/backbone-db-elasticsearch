@@ -18,6 +18,9 @@ ElasticSearchDb.sync = Db.sync;
 var convertResults = function(hits) {
   if (!hits || !hits.length) return [];
   var res = [];
+  var noScores = _.every(hits, function(hit) {
+    return !hit._score;
+  });
   _.each(hits, function(hit, idx) {
     debug('convert', hit);
     var doc = {};
@@ -28,7 +31,8 @@ var convertResults = function(hits) {
     doc.content_type = hit._type;
     // default score is the order results are returned
     // (score is missing e.g. when sorting)
-    doc.score = hit._score || hits.length - idx;
+    doc.score = hit._score;
+    if (noScores) doc.score = hits.length - idx;
     res.push(doc);
   });
   return res;

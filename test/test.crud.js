@@ -87,6 +87,29 @@ describe('ElasticSearchDb CRUD', function() {
     return model.destroy();
   });
 
+  it('should upsert a document', function() {
+    var model2 = new this.Model({id: 2, value: 99});
+    return model2.save(null, {
+      update: true,
+      upsert: true
+    });
+  });
+
+  it('should fetch upserted doc', function() {
+    var model2 = new this.Model({id: 2});
+    return model2
+      .fetch()
+      .then(function() {
+        var json = model2.toJSON();
+        json.value.should.equal(99);
+      });
+  });
+
+  it('should delete the upserted doc', function() {
+    var model2 = new this.Model({id: 2});
+    return model2.destroy();
+  });
+
   describe('Index CRUD', function() {
     it('should create index', function(next) {
       var indexSettings = {

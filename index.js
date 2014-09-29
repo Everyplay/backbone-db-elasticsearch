@@ -92,10 +92,14 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
     if (options.inc) {
       return this.inc(model, options, callback);
     }
-    this.client.update(this.getESOptions(model, {
+    var updateOpts = this.getESOptions(model, {
       includeBody: true,
       update: true
-    }), function(error, resp) {
+    });
+    if (options.upsert) {
+      updateOpts.body.upsert = _.clone(updateOpts.body.doc);
+    }
+    this.client.update(updateOpts, function(error, resp) {
       callback(error, model.toJSON());
     });
   },

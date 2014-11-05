@@ -348,6 +348,32 @@ describe('ElasticSearchDb searching tests', function() {
         });
     });
 
+    it('should properly limit msearch w/ limit', function() {
+      var queriesBody = [
+        // match all query
+        { index: 'anotheridx'},
+        { query: { match_all: {} } },
+        // query_string query, on index/type
+        { index: 'testidx', type: 'test' },
+        {
+          query: {
+            query_string: { query: '"abc"' }
+          },
+          size: 1
+        }
+      ];
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          msearch: true,
+          limit: 1,
+          body: queriesBody
+        })
+        .then(function() {
+          collection.length.should.equal(1);
+        });
+    });
+
     it('should do msearch /w function_score', function() {
       var queriesBody = [
         // match all query

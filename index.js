@@ -184,7 +184,11 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
         var msg = _.pluck(responseErrors, 'error').join(' & ');
         return callback(new Error(msg));
       }
-      callback(null, convertMsearchResults(resp.responses));
+      var responses = convertMsearchResults(resp.responses);
+      if (responses && options && options.limit && Number(options.limit) < responses.length) {
+        responses = _.first(responses, options.limit);
+      }
+      callback(null, responses);
     });
   },
 

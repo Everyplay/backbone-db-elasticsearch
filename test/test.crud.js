@@ -10,6 +10,7 @@ describe('ElasticSearchDb CRUD', function() {
     setup.setupDb(function() {
       self.Model = this.Model;
       self.AnotherModel = this.AnotherModel;
+      self.CustomIndexModel = this.CustomIndexModel;
       self.Collection = this.Collection;
       self.db = this.db;
       next();
@@ -108,6 +109,13 @@ describe('ElasticSearchDb CRUD', function() {
   it('should delete the upserted doc', function() {
     var model2 = new this.Model({id: 2});
     return model2.destroy();
+  });
+
+  it('should use custom index', function() {
+    var custom = new this.CustomIndexModel({id: 1, name: 'foo'});
+    return custom.save().then(function() {
+      return custom.destroy();
+    });
   });
 
   describe('Index CRUD', function() {

@@ -198,8 +198,11 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
     if (!model.type) throw new Error('Model.type must be defined');
 
     options = options || {};
+    var indexName = model.searchOptions.indexAlias
+      ? model.searchOptions.indexAlias
+      : this.name + this.prefixSeparator + model.searchOptions.index;
     var esData = {
-      index: this.name + this.prefixSeparator + model.searchOptions.index,
+      index: indexName,
       type: model.type.toLowerCase(),
     };
     esData.id = model.id.toString();

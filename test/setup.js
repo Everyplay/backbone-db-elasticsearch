@@ -34,6 +34,13 @@ var AnotherModel = TestModel.extend({
   }
 });
 
+var CustomIndexModel = TestModel.extend({
+  type: 'another',
+  searchOptions: {
+    indexAlias: 'elasticsearch-test__custom_index'
+  }
+});
+
 var TestCollection = Collection.extend({
   url: function() {
     'tests';
@@ -48,6 +55,7 @@ exports.setupDb = function(cb) {
   TestCollection.prototype.db = db;
   this.Model = TestModel;
   this.AnotherModel = AnotherModel;
+  this.CustomIndexModel = CustomIndexModel;
   this.db = db;
   this.Collection = TestCollection;
   cb.call(this);

@@ -36,3 +36,7 @@ test-coverage:
 check-coverage: test-coverage
 	@$(BIN)/istanbul check-coverage --function 80 --branch 80 --statement 80 --lines 92
 .PHONY: check-coverage
+
+cleardb:
+	curl -XDELETE 'http://localhost:9200/elasticsearch-test*' >/dev/null 2>&1
+.PHONY: cleardb

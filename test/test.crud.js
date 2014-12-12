@@ -111,10 +111,50 @@ describe('ElasticSearchDb CRUD', function() {
     return model2.destroy();
   });
 
-  it('should use custom index', function() {
-    var custom = new this.CustomIndexModel({id: 1, name: 'foo'});
-    return custom.save().then(function() {
-      return custom.destroy();
+  describe('custom index', function() {
+    var custom;
+
+    it('should save model to custom index', function() {
+      custom = new this.CustomIndexModel({id: 1, name: 'customfoo'});
+      return custom.save(null, {wait: true});
+    });
+
+    it('should search using custom index', function() {
+      // read from custom index
+      var searchOptions = {
+        indexAlias: custom.searchOptions.indexAlias,
+        filter: {
+          term: {
+            name: 'customfoo'
+          }
+        }
+      };
+      var c = new this.Collection();
+      return c.fetch(searchOptions).then(function() {
+        c.length.should.equal(1);
+      });
+    });
+
+    it('should msearch', function() {
+      var queriesBody = [
+        { indexAlias: custom.searchOptions.indexAlias},
+        { query: { match_all: {} } },
+        { index: 'testidx', type: 'test' },
+        { query: { match_all: {} } }
+      ];
+      collection = new this.Collection();
+      return collection
+        .fetch({
+          msearch: true,
+          body: queriesBody
+        })
+        .then(function() {
+          collection.length.should.equal(1);
+        });
+    });
+
+    it('should destroy model', function() {
+        return custom.destroy();
     });
   });
 

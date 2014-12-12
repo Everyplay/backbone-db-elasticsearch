@@ -140,14 +140,18 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
         query: options.query
       }
     };
-    if (options.index) {
+
+    if (options.indexAlias) {
+      // indexAlias is the full path -> no automatic prefixing
+      query.index = options.indexAlias;
+    } else if (options.index) {
       if (options.index.indexOf(',') > -1) {
         query.indexes = this.prefixIndexKeys(options.index);
       } else {
         query.index = this.prefixIndexKeys(options.index);
       }
-
     }
+
     if (options.type) query.type = options.type;
 
     if (options.offset || options.from) {
@@ -229,6 +233,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
     }, this).join(',');
   },
 
+  // TODO: this is not working if using custom indexes
   // prefix keys when a Object type option is given
   // e.g. {indexa: 123, indexb: 455}
   prefixObjectIndexKeys: function(indexObject) {
@@ -243,7 +248,11 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
     var result = [];
     _.each(mqueryBody, function(opts) {
       var options = _.clone(opts);
-      if (options.index) options.index = this.prefixIndexKeys(options.index);
+      if (options.indexAlias) {
+        options.index = options.indexAlias;
+      } else if (options.index) {
+        options.index = this.prefixIndexKeys(options.index);
+      }
       result.push(options);
     }, this);
     return result;
@@ -251,7 +260,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
 
   // creates a new index (http://www.elasticsearch.org/guide/en/elasticsearch/reference/1.x/indices-create-index.html)
   createIndex: function(options, callback) {
-    var indexName = this.prefixIndexKeys(options.index);
+    var indexName = options.indexAlias ? options.indexAlias : this.prefixIndexKeys(options.index);
     var opts = {
       index: indexName,
       body: {}
@@ -266,7 +275,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   },
 
   deleteIndex: function(options, callback) {
-    var indexName = this.prefixIndexKeys(options.index);
+    var indexName = options.indexAlias ? options.indexAlias : this.prefixIndexKeys(options.index);
     var opts = {
       index: indexName
     };
@@ -277,14 +286,14 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   },
 
   closeIndex: function(options, callback) {
-    var indexName = this.prefixIndexKeys(options.index);
+    var indexName = options.indexAlias ? options.indexAlias : this.prefixIndexKeys(options.index);
     this.client.indices.close({
       index: indexName
     }, callback);
   },
 
   openIndex: function(options, callback) {
-    var indexName = this.prefixIndexKeys(options.index);
+    var indexName = options.indexAlias ? options.indexAlias : this.prefixIndexKeys(options.index);
     this.client.indices.open({
       index: indexName
     }, callback);
@@ -300,7 +309,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   },
 
   _updateIndex: function(options, callback) {
-    var indexName = this.prefixIndexKeys(options.index);
+    var indexName = options.indexAlias ? options.indexAlias : this.prefixIndexKeys(options.index);
     var opts = {
       index: indexName,
       body: {
@@ -311,7 +320,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   },
 
   updateMapping: function(options, callback) {
-    var indexName = this.prefixIndexKeys(options.index);
+    var indexName = options.indexAlias ? options.indexAlias : this.prefixIndexKeys(options.index);
     var opts = {
       index: indexName,
       type: options.type,
@@ -321,7 +330,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   },
 
   getMapping: function(options, callback) {
-    var indexName = this.prefixIndexKeys(options.index);
+    var indexName = options.indexAlias ? options.indexAlias : this.prefixIndexKeys(options.index);
     var opts = {
       index: indexName
     };
@@ -329,7 +338,7 @@ _.extend(ElasticSearchDb.prototype, Db.prototype, {
   },
 
   deleteMapping: function(options, callback) {
-    var indexName = this.prefixIndexKeys(options.index);
+    var indexName = options.indexAlias ? options.indexAlias : this.prefixIndexKeys(options.index);
     var opts = {
       index: indexName
     };
